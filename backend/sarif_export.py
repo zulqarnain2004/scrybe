@@ -1,4 +1,4 @@
-"""
+﻿"""
 sarif_export.py — Converts security + dependency findings into SARIF 2.1.0,
 the standard format GitHub (and most CI security tooling) consumes for code
 scanning results. Upload the output via the github/codeql-action/upload-sarif
@@ -17,7 +17,7 @@ DEPENDENCY_LEVEL_MAP = {"critical": "error", "high": "error", "medium": "warning
 
 
 def _security_rule_id(f: dict) -> str:
-    return f"codesage/{f.get('category', 'security')}"
+    return f"scrybe/{f.get('category', 'security')}"
 
 
 def _security_results_and_rules(security_findings: list[dict]):
@@ -48,7 +48,7 @@ def _security_results_and_rules(security_findings: list[dict]):
 def _dependency_results_and_rules(dependency_findings: list[dict]):
     rules, results, seen_rules = [], [], set()
     for f in dependency_findings:
-        rule_id = f"codesage/dependency/{f.get('vulnerability_id', 'unknown')}"
+        rule_id = f"scrybe/dependency/{f.get('vulnerability_id', 'unknown')}"
         if rule_id not in seen_rules:
             seen_rules.add(rule_id)
             rules.append({
@@ -87,7 +87,7 @@ def build_sarif(security_findings: list[dict], dependency_findings: list[dict],
         "runs": [{
             "tool": {
                 "driver": {
-                    "name": "CodeSage AI",
+                    "name": "Scrybe",
                     "informationUri": "https://github.com/",
                     "version": tool_version,
                     "rules": sec_rules + dep_rules,

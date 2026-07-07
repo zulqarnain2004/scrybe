@@ -1,5 +1,5 @@
-"""
-CodeSage AI — Streamlit UI
+﻿"""
+Scrybe — Streamlit UI
 
 Point it at a ZIP, a single source file, or a public GitHub URL. It maps the
 project, runs static analysis, security scanning, dependency auditing, git
@@ -36,7 +36,7 @@ from backend.fix_suggester import suggest_security_fix, dependency_fix_action, r
 from backend.notifier import send_scan_complete_email, NotifierError
 from backend.llm_client import LLMNotConfigured, LLMRequestError
 
-st.set_page_config(page_title="CodeSage AI", page_icon="🧠", layout="wide")
+st.set_page_config(page_title="Scrybe", page_icon="🧠", layout="wide")
 db.init_db()
 
 # --- Session state ---
@@ -100,7 +100,7 @@ def _load_historical_scan(scan_id: int):
 
 
 with st.sidebar:
-    st.title("🧠 CodeSage AI")
+    st.title("🧠 Scrybe")
     st.caption("Code review, security, and repo chat — in one pass.")
 
     api_key = st.text_input("Anthropic API key", type="password", value=os.environ.get("ANTHROPIC_API_KEY", ""))
@@ -508,10 +508,10 @@ with col_pdf:
                 result["project_name"], analysis, security_findings, dependency_findings,
                 git_result, graph_result, review,
             )
-        st.download_button("Download PDF Report", pdf_bytes, file_name=f"{result['project_name']}_codesage_report.pdf",
+        st.download_button("Download PDF Report", pdf_bytes, file_name=f"{result['project_name']}_scrybe_report.pdf",
                             mime="application/pdf")
 with col_sarif:
     if st.button("🛡️ Export SARIF (for GitHub code scanning)"):
         sarif_str = build_sarif(security_findings, dependency_findings)
-        st.download_button("Download SARIF", sarif_str, file_name=f"{result['project_name']}_codesage.sarif",
+        st.download_button("Download SARIF", sarif_str, file_name=f"{result['project_name']}_scrybe.sarif",
                             mime="application/sarif+json")

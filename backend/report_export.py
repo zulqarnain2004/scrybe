@@ -49,7 +49,7 @@ def build_pdf_report(
     story = []
 
     # --- Cover / title ---
-    story.append(Paragraph(f"CodeSage AI Review: {project_name}", styles["H1Custom"]))
+    story.append(Paragraph(f"Scrybe Review: {project_name}", styles["H1Custom"]))
     story.append(HRFlowable(width="100%", color=colors.HexColor("#e0e0e0")))
     story.append(Spacer(1, 12))
 

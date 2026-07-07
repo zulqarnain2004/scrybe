@@ -31,7 +31,7 @@ def build_summary_email(project_name: str, risk_score: float, security_findings:
     sec_counts = _severity_counts(security_findings)
     dep_counts = _severity_counts(dependency_findings)
 
-    subject = f"CodeSage AI scan complete: {project_name} (risk {risk_score:.0f}/100)"
+    subject = f"Scrybe scan complete: {project_name} (risk {risk_score:.0f}/100)"
     body = (
         f"Scan finished for {project_name}.\n\n"
         f"Risk score: {risk_score:.0f}/100\n\n"
@@ -41,7 +41,7 @@ def build_summary_email(project_name: str, risk_score: float, security_findings:
         f"Dependency vulnerabilities: {sum(dep_counts.values())} total\n"
         f"  Critical: {dep_counts['critical']}  High: {dep_counts['high']}  "
         f"Medium: {dep_counts['medium']}  Low: {dep_counts['low']}\n\n"
-        f"Open CodeSage AI to see the full report, AI review, and PDF/SARIF export.\n"
+        f"Open Scrybe to see the full report, AI review, and PDF/SARIF export.\n"
     )
     return subject, body
 

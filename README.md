@@ -1,4 +1,4 @@
-# CodeSage AI
+# Scrybe
 
 Point it at a ZIP, a single source file, or a public GitHub repo. It maps the
 project, runs real static analysis and security scanning, audits dependencies
