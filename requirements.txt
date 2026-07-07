@@ -1,0 +1,12 @@
+streamlit>=1.35
+anthropic>=0.30
+radon>=6.0
+bandit>=1.7
+semgrep>=1.60
+pip-audit>=2.7
+GitPython>=3.1
+networkx>=3.2
+matplotlib>=3.8
+reportlab>=4.0
+sentence-transformers>=2.7
+numpy>=1.26
