@@ -1,0 +1,145 @@
+# CodeSage AI — bundled Semgrep ruleset.
+#
+# Runs fully offline (no `--config=auto`/registry fetch) so scans don't depend
+# on reaching semgrep.dev. Deliberately scoped to patterns NOT already covered
+# by bandit (Python-only) or the regex secret/SQL-injection scanners, so this
+# adds multi-language coverage for command injection, unsafe deserialization,
+# XSS, path traversal, weak crypto, and SSRF-shaped code.
+
+rules:
+  - id: js-command-injection
+    languages: [javascript, typescript]
+    severity: ERROR
+    message: >-
+      User-influenced input passed to a shell-executing function
+      (exec/execSync). Prefer execFile/spawn with an argument array instead
+      of a shell string.
+    patterns:
+      - pattern-either:
+          - pattern: $MOD.exec($CMD, ...)
+          - pattern: $MOD.execSync($CMD, ...)
+          - pattern: exec($CMD, ...)
+          - pattern: execSync($CMD, ...)
+      - metavariable-regex:
+          metavariable: $MOD
+          regex: (child_process|cp|require\(.child_process.\))
+    metadata:
+      category: command_injection
+
+  - id: js-eval-usage
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "Use of eval() — arbitrary code execution risk if the argument is influenced by user input."
+    pattern: eval(...)
+    metadata:
+      category: dangerous_eval
+
+  - id: js-dangerously-set-innerhtml
+    languages: [javascript, typescript]
+    severity: WARNING
+    message: "dangerouslySetInnerHTML / innerHTML assignment — potential XSS if the value isn't sanitized."
+    patterns:
+      - pattern-either:
+          - pattern: "<$EL dangerouslySetInnerHTML={{ __html: $X }} />"
+          - pattern: $EL.innerHTML = $X
+    metadata:
+      category: xss
+
+  - id: py-yaml-unsafe-load
+    languages: [python]
+    severity: ERROR
+    message: "yaml.load() without Loader=SafeLoader can execute arbitrary Python objects — use yaml.safe_load()."
+    pattern: yaml.load($X)
+    metadata:
+      category: unsafe_deserialization
+
+  - id: py-pickle-loads
+    languages: [python]
+    severity: WARNING
+    message: "pickle.load/loads on untrusted data allows arbitrary code execution during unpickling."
+    patterns:
+      - pattern-either:
+          - pattern: pickle.load(...)
+          - pattern: pickle.loads(...)
+    metadata:
+      category: unsafe_deserialization
+
+  - id: java-object-deserialization
+    languages: [java]
+    severity: WARNING
+    message: "ObjectInputStream.readObject() on untrusted input is a classic Java deserialization RCE vector."
+    pattern: $OIS.readObject()
+    metadata:
+      category: unsafe_deserialization
+
+  - id: php-unserialize
+    languages: [php]
+    severity: WARNING
+    message: "unserialize() on untrusted input can lead to PHP object injection / RCE — prefer json_decode()."
+    pattern: unserialize($X)
+    metadata:
+      category: unsafe_deserialization
+
+  - id: go-command-injection
+    languages: [go]
+    severity: ERROR
+    message: "exec.Command built with concatenated/variable shell string — validate/allowlist input to avoid command injection."
+    patterns:
+      - pattern-either:
+          - pattern: exec.Command("sh", "-c", $X)
+          - pattern: exec.Command("bash", "-c", $X)
+    metadata:
+      category: command_injection
+
+  - id: path-traversal-join
+    languages: [python]
+    severity: WARNING
+    message: "Path built from unvalidated user input joined into a filesystem path — validate/normalize to prevent path traversal (../../)."
+    patterns:
+      - pattern-either:
+          - pattern: os.path.join($BASE, request.$ATTR)
+          - pattern: open(request.$ATTR, ...)
+    metadata:
+      category: path_traversal
+
+  - id: weak-hash-md5-sha1
+    languages: [python, javascript, typescript, java, go, php, ruby]
+    severity: WARNING
+    message: "MD5/SHA1 used — cryptographically broken for security purposes (password hashing, signatures). Use SHA-256+ or a dedicated password hash (bcrypt/argon2/scrypt)."
+    patterns:
+      - pattern-either:
+          - pattern: hashlib.md5(...)
+          - pattern: hashlib.sha1(...)
+          - pattern: crypto.createHash("md5")
+          - pattern: crypto.createHash("sha1")
+          - pattern: MessageDigest.getInstance("MD5")
+          - pattern: MessageDigest.getInstance("SHA1")
+    metadata:
+      category: weak_crypto
+
+  - id: insecure-random-for-security
+    languages: [python, javascript, typescript]
+    severity: INFO
+    message: >-
+      random.random()/Math.random() found. This check can't tell whether it's
+      used for a token/password/session ID or something unrelated (games,
+      sampling, simulations) — it's only a real issue in the former case. If
+      this generates anything security-sensitive, use secrets.token_urlsafe()
+      (Python) or crypto.randomBytes() (Node) instead; otherwise, ignore.
+    patterns:
+      - pattern-either:
+          - pattern: random.random()
+          - pattern: Math.random()
+    metadata:
+      category: insecure_random
+
+  - id: ruby-command-injection
+    languages: [ruby]
+    severity: ERROR
+    message: "system()/backticks with interpolated input — potential command injection."
+    patterns:
+      - pattern-either:
+          - pattern: system($X)
+          - pattern: "`#{$X}`"
+    metadata:
+      category: command_injection
